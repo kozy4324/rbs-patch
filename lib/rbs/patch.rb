@@ -12,7 +12,7 @@ module RBS
       apply(source)
     end
 
-    def apply(source) # rubocop:disable Metrics/AbcSize,Metrics/CyclomaticComplexity,Metrics/MethodLength
+    def apply(source)
       _, dirs, decls = ::RBS::Parser.parse_signature(source)
       @env.add_source(::RBS::Source::RBS.new(source, dirs, decls))
       @env.class_decls.each_value.map do |class_entry|
@@ -28,7 +28,7 @@ module RBS
       end
     end
 
-    def to_s # rubocop:disable Metrics/AbcSize
+    def to_s
       decls = @env.class_decls.each_value.map do |class_entry|
         decls = class_entry.context_decls.map { _2 }
         decls.each_with_object(decls.first.update(members: [])) do |decl, new_decl|
