@@ -1,6 +1,13 @@
 module RBS
-  module Patch
+  class Patch
     VERSION: String
-    # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
+    @env: untyped
+
+    def initialize: (String source) -> void
+
+    def apply: (String source) -> void
+
+    def to_s: () -> String
   end
 end

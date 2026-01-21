@@ -5,8 +5,7 @@ require "stringio"
 require_relative "patch/version"
 
 module RBS
-  # RBS::Patch
-  class Patch
+  class Patch # rubocop:disable Style/Documentation
     def initialize(source)
       @env = ::RBS::Environment.new
       apply(source)
