@@ -57,5 +57,29 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_override_replaces_method_at_original_position
+      p = RBS::Patch.new(<<~RBS)
+        class A
+          def a: () -> void
+          def b: () -> void
+          def c: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          %a{override}
+          def b: (untyped) -> untyped
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: () -> void
+          def b: (untyped) -> untyped
+          def c: () -> void
+        end
+      EXPECTED
+    end
   end
 end

@@ -16,10 +16,15 @@ module RBS
       @env.add_source(::RBS::Source::RBS.new(source, dirs, decls))
       @env.class_decls.each_value.map do |class_entry|
         class_entry.context_decls.map { _2 }.inject do |decl_a, decl_b|
-          decl_b.members.each do |member_b|
-            if member_b.annotations.any? { |a| a.string == "override" }
-              decl_a.members.delete_if { |member_a| member_a.name == member_b.name }
-              member_b.annotations.delete_if { |a| a.string == "override" }
+          decl_b.members.delete_if do |member_b|
+            next false unless member_b.annotations.any? { |a| a.string == "override" }
+
+            index = decl_a.members.find_index { |member_a| member_a.name == member_b.name }
+            if index
+              decl_a.members[index] = decl_a.members[index].update(overloads: member_b.overloads)
+              true
+            else
+              false
             end
           end
           decl_a
