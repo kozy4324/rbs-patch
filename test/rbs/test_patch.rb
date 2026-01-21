@@ -81,5 +81,29 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_deletes_method
+      p = RBS::Patch.new(<<~RBS)
+        class A
+          def a: () -> void
+          def b: () -> void
+          def c: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          %a{patch:delete}
+          def b: () -> void
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: () -> void
+
+          def c: () -> void
+        end
+      EXPECTED
+    end
   end
 end

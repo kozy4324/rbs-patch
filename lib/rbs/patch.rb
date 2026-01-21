@@ -7,6 +7,7 @@ require_relative "patch/version"
 module RBS
   class Patch # rubocop:disable Style/Documentation
     ANNOTATION_OVERRIDE = "patch:override"
+    ANNOTATION_DELETE   = "patch:delete"
 
     def initialize(source)
       @env = ::RBS::Environment.new
@@ -19,14 +20,25 @@ module RBS
       @env.class_decls.each_value.map do |class_entry|
         class_entry.context_decls.map { _2 }.inject do |decl_a, decl_b|
           decl_b.members.delete_if do |member_b|
-            next false unless member_b.annotations.any? { |a| a.string == ANNOTATION_OVERRIDE }
+            ope = if member_b.annotations.any? { |a| a.string == ANNOTATION_OVERRIDE }
+                    :override
+                  elsif member_b.annotations.any? { |a| a.string == ANNOTATION_DELETE }
+                    :delete
+                  end
 
-            index = decl_a.members.find_index { |member_a| member_a.name == member_b.name }
-            if index
-              decl_a.members[index] = decl_a.members[index].update(overloads: member_b.overloads)
-              true
-            else
-              false
+            next unless ope
+
+            case ope
+            when :override
+              index = decl_a.members.find_index { |member_a| member_a.name == member_b.name }
+              if index
+                decl_a.members[index] = decl_a.members[index].update(overloads: member_b.overloads)
+                true
+              else
+                false
+              end
+            when :delete
+              decl_a.members.reject! { |member_a| member_a.name == member_b.name }
             end
           end
           decl_a
