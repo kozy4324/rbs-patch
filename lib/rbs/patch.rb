@@ -44,17 +44,3 @@ module RBS
     end
   end
 end
-
-__END__
-p = RBS::Patch.new(<<~RBS)
-  class Hoge
-    def a: () -> void
-  end
-RBS
-p.apply(<<~RBS)
-  class Hoge
-    def b: () -> void
-    %a{override}
-    def a: (Integer) -> bool
-  end
-RBS
