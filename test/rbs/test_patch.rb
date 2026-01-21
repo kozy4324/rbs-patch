@@ -46,7 +46,7 @@ module RBS
       RBS
       p.apply(<<~RBS)
         class A
-          %a{override}
+          %a{patch:override}
           def a: (untyped) -> untyped
         end
       RBS
@@ -68,7 +68,7 @@ module RBS
       RBS
       p.apply(<<~RBS)
         class A
-          %a{override}
+          %a{patch:override}
           def b: (untyped) -> untyped
         end
       RBS

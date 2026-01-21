@@ -6,6 +6,8 @@ require_relative "patch/version"
 
 module RBS
   class Patch # rubocop:disable Style/Documentation
+    ANNOTATION_OVERRIDE = "patch:override"
+
     def initialize(source)
       @env = ::RBS::Environment.new
       apply(source)
@@ -17,7 +19,7 @@ module RBS
       @env.class_decls.each_value.map do |class_entry|
         class_entry.context_decls.map { _2 }.inject do |decl_a, decl_b|
           decl_b.members.delete_if do |member_b|
-            next false unless member_b.annotations.any? { |a| a.string == "override" }
+            next false unless member_b.annotations.any? { |a| a.string == ANNOTATION_OVERRIDE }
 
             index = decl_a.members.find_index { |member_a| member_a.name == member_b.name }
             if index
