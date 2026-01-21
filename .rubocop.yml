@@ -18,5 +18,8 @@ Metrics/CyclomaticComplexity:
 Metrics/MethodLength:
   Enabled: false
 
+Metrics/PerceivedComplexity:
+  Enabled: false
+
 plugins:
   - rubocop-minitest
