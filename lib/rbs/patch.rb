@@ -39,7 +39,7 @@ module RBS
 
       io = ::StringIO.new
       RBS::Writer.new(out: io).write(decls)
-      io.pos = 0
+      io.rewind
       io.read
     end
   end
