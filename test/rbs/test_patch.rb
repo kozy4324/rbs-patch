@@ -4,7 +4,7 @@ require "test_helper"
 
 module RBS
   class TestPatch < Minitest::Test
-    def test_single_rbs_file_to_s
+    def test_single_rbs_file_converts_to_string
       p = RBS::Patch.new(<<~RBS)
         class A
           def a: () -> void
@@ -18,7 +18,7 @@ module RBS
       EXPECTED
     end
 
-    def test_merge_into_single_rbs_file
+    def test_merges_multiple_classes_into_single_file
       p = RBS::Patch.new(<<~RBS)
         class A
           def a: () -> void
@@ -38,7 +38,7 @@ module RBS
       EXPECTED
     end
 
-    def test_override_method
+    def test_overrides_method_with_annotation
       p = RBS::Patch.new(<<~RBS)
         class A
           def a: () -> void

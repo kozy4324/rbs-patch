@@ -31,7 +31,7 @@ module RBS
       decls = @env.class_decls.each_value.map do |class_entry|
         decls = class_entry.context_decls.map { _2 }
         decls.each_with_object(decls.first.update(members: [])) do |decl, new_decl|
-          # merge multiple class decl into single one
+          # merge multiple class decls into a single one
           new_decl.members.concat decl.members
         end
       end
