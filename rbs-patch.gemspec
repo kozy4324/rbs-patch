@@ -4,7 +4,7 @@ require_relative "lib/rbs/patch/version"
 
 Gem::Specification.new do |spec|
   spec.name = "rbs-patch"
-  spec.version = Rbs::Patch::VERSION
+  spec.version = RBS::Patch::VERSION
   spec.authors = ["Koji NAKAMURA"]
   spec.email = ["kozy4324@gmail.com"]
 
@@ -32,7 +32,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Uncomment to register a new dependency of your gem
-  # spec.add_dependency "example-gem", "~> 1.0"
+  spec.add_dependency "rbs", "4.0.0.dev.5"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

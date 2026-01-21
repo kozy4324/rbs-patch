@@ -1,7 +1,5 @@
-# frozen_string_literal: true
-
-module Rbs
-  module Patch
+module RBS
+  class Patch
     VERSION = "0.1.0"
   end
 end
