@@ -31,39 +31,7 @@ module RBS
       @env.add_source(::RBS::Source::RBS.new(source, dirs, decls))
       @env.class_decls.each_value.map do |class_entry|
         class_entry.context_decls.map { _2 }.inject do |decl_a, decl_b|
-          decl_b.members.delete_if do |member_b|
-            ope, arg = process_annotations(member_b.annotations)
-            next unless ope
-
-            case ope
-            when :override
-              index = decl_a.members.find_index { |member_a| member_a.name == member_b.name }
-              if index
-                decl_a.members[index] = decl_a.members[index].update(overloads: member_b.overloads)
-                true
-              else
-                false
-              end
-            when :delete
-              decl_a.members.reject! { |member_a| member_a.name == member_b.name }
-            when :append_after, :prepend_before
-              target_name = arg.to_sym
-              index = decl_a.members.find_index { |member_a| member_a.name == target_name }
-              if index
-                if ope == :append_after
-                  offset = 1
-                  annotations = member_b.annotations.reject { |a| a.string.match(ANNOTATION_APPEND_AFTER) }
-                else
-                  offset = 0
-                  annotations = member_b.annotations.reject { |a| a.string.match(ANNOTATION_PREPEND_BEFORE) }
-                end
-                decl_a.members.insert(index + offset, member_b.update(annotations:))
-                true
-              else
-                false
-              end
-            end
-          end
+          process_members(decl_a.members, decl_b.members)
           decl_a
         end
       end
@@ -103,6 +71,42 @@ module RBS
         [:append_after, anno.string.match(ANNOTATION_APPEND_AFTER)[1]]
       elsif (anno = annotations.find { |a| a.string.match(ANNOTATION_PREPEND_BEFORE) })
         [:prepend_before, anno.string.match(ANNOTATION_PREPEND_BEFORE)[1]]
+      end
+    end
+
+    def process_members(members_a, members_b)
+      members_b.delete_if do |member_b|
+        ope, arg = process_annotations(member_b.annotations)
+        next unless ope
+
+        case ope
+        when :override
+          index = members_a.find_index { |member_a| member_a.name == member_b.name }
+          if index
+            members_a[index] = members_a[index].update(overloads: member_b.overloads)
+            true
+          else
+            false
+          end
+        when :delete
+          members_a.reject! { |member_a| member_a.name == member_b.name }
+        when :append_after, :prepend_before
+          target_name = arg.to_sym
+          index = members_a.find_index { |member_a| member_a.name == target_name }
+          if index
+            if ope == :append_after
+              offset = 1
+              annotations = member_b.annotations.reject { |a| a.string.match(ANNOTATION_APPEND_AFTER) }
+            else
+              offset = 0
+              annotations = member_b.annotations.reject { |a| a.string.match(ANNOTATION_PREPEND_BEFORE) }
+            end
+            members_a.insert(index + offset, member_b.update(annotations:))
+            true
+          else
+            false
+          end
+        end
       end
     end
   end
