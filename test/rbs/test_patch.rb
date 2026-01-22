@@ -189,5 +189,28 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_nested_module_structure
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        module M_OUTER
+          module M_INNER
+            class A
+              def a: () -> void
+            end
+          end
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        module M_OUTER
+          module M_INNER
+            class A
+              def a: () -> void
+            end
+          end
+        end
+      EXPECTED
+    end
   end
 end

@@ -87,6 +87,14 @@ module RBS
         end
       end
 
+      classes = Set[]
+      decls.each do |decl|
+        decl.members.each do |member|
+          classes << member.name
+        end
+      end
+      decls.delete_if { |c| classes.include?(c.name) }
+
       io = ::StringIO.new
       RBS::Writer.new(out: io).write(decls)
       io.rewind
