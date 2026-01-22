@@ -130,5 +130,30 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_inserts_method_before_specific_method
+      p = RBS::Patch.new(<<~RBS)
+        class A
+          def a: () -> void
+          def b: () -> void
+          def c: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          %a{patch:prepend_before:a}
+          def d: () -> void
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def d: () -> void
+          def a: () -> void
+          def b: () -> void
+          def c: () -> void
+        end
+      EXPECTED
+    end
   end
 end

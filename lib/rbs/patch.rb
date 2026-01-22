@@ -6,9 +6,10 @@ require_relative "patch/version"
 
 module RBS
   class Patch # rubocop:disable Style/Documentation
-    ANNOTATION_OVERRIDE     = "patch:override"
-    ANNOTATION_DELETE       = "patch:delete"
-    ANNOTATION_APPEND_AFTER = /\Apatch:append_after:(.*)\Z/
+    ANNOTATION_OVERRIDE       = "patch:override"
+    ANNOTATION_DELETE         = "patch:delete"
+    ANNOTATION_APPEND_AFTER   = /\Apatch:append_after:(.*)\Z/
+    ANNOTATION_PREPEND_BEFORE = /\Apatch:prepend_before:(.*)\Z/
 
     def initialize(source)
       @env = ::RBS::Environment.new
@@ -27,6 +28,8 @@ module RBS
                          [:delete, nil]
                        elsif (anno = member_b.annotations.find { |a| a.string.match(ANNOTATION_APPEND_AFTER) })
                          [:append_after, anno.string.match(ANNOTATION_APPEND_AFTER)[1]]
+                       elsif (anno = member_b.annotations.find { |a| a.string.match(ANNOTATION_PREPEND_BEFORE) })
+                         [:prepend_before, anno.string.match(ANNOTATION_PREPEND_BEFORE)[1]]
                        end
 
             next unless ope
@@ -42,12 +45,18 @@ module RBS
               end
             when :delete
               decl_a.members.reject! { |member_a| member_a.name == member_b.name }
-            when :append_after
+            when :append_after, :prepend_before
               target_name = arg.to_sym
               index = decl_a.members.find_index { |member_a| member_a.name == target_name }
               if index
-                annotations = member_b.annotations.reject { |a| a.string.match(ANNOTATION_APPEND_AFTER) }
-                decl_a.members.insert(index + 1, member_b.update(annotations:))
+                if ope == :append_after
+                  offset = 1
+                  annotations = member_b.annotations.reject { |a| a.string.match(ANNOTATION_APPEND_AFTER) }
+                else
+                  offset = 0
+                  annotations = member_b.annotations.reject { |a| a.string.match(ANNOTATION_PREPEND_BEFORE) }
+                end
+                decl_a.members.insert(index + offset, member_b.update(annotations:))
                 true
               else
                 false

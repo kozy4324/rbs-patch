@@ -7,7 +7,7 @@ RBS::Patch manages RBS (Ruby Signature) type definitions through patches. It app
 - **`override`**: Replace an existing method signature
 - **`delete`**: Remove a method signature
 - **`append_after`**: Insert a method signature after a specified method
-- **`prepend_before`**: *(Planned)* Insert a method signature before a specified method
+- **`prepend_before`**: Insert a method signature before a specified method
 
 All operations use RBS annotations (e.g., `%a{patch:override}`), keeping patch files valid RBS syntax.
 
