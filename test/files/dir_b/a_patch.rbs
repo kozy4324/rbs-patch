@@ -1,0 +1,4 @@
+class A
+  %a{patch:override}
+  def a: (untyped) -> untyped
+end

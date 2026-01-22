@@ -6,7 +6,7 @@ module RBS
 
     def initialize: () -> void
 
-    def apply: (String source) -> void
+    def apply: (String source?, path: Pathname?) -> void
 
     def to_s: () -> String
   end

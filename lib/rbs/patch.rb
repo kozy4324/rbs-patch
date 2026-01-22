@@ -15,7 +15,18 @@ module RBS
       @env = ::RBS::Environment.new
     end
 
-    def apply(source)
+    def apply(source = nil, path: nil)
+      unless path.nil?
+        files = Set[]
+        ::RBS::FileFinder.each_file(path, skip_hidden: true) do |path|
+          next if files.include?(path)
+
+          files << path
+          apply Buffer.new(name: path, content: path.read(encoding: "UTF-8"))
+        end
+        return
+      end
+
       _, dirs, decls = ::RBS::Parser.parse_signature(source)
       @env.add_source(::RBS::Source::RBS.new(source, dirs, decls))
       @env.class_decls.each_value.map do |class_entry|

@@ -162,5 +162,32 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_loads_from_file
+      p = RBS::Patch.new
+      p.apply(path: Pathname("#{__dir__}/../files/a.rbs"))
+      p.apply(path: Pathname("#{__dir__}/../files/a_patch.rbs"))
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: (untyped) -> untyped
+        end
+      EXPECTED
+    end
+
+    def test_loads_from_directory
+      p = RBS::Patch.new
+      p.apply(path: Pathname("#{__dir__}/../files/dir_a"))
+      p.apply(path: Pathname("#{__dir__}/../files/dir_b"))
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: (untyped) -> untyped
+        end
+        class B
+          def b: () -> void
+        end
+      EXPECTED
+    end
   end
 end
