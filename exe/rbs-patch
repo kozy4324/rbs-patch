@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+$LOAD_PATH << File.join(__dir__, "../lib")
+require "rbs/patch"
+require "pathname"
+
+if ARGV.empty?
+  puts "Usage: rbs-patch RBS_FILE_PATH [RBS_FILE_PATH ...]"
+  puts ""
+  puts "Examples:"
+  puts "  rbs-patch lib/types/ sig/patches/"
+  puts "  rbs-patch base.rbs patch1.rbs patch2.rbs"
+  exit 1
+end
+
+patch = RBS::Patch.new
+ARGV.each do |arg|
+  patch.apply(path: Pathname(arg))
+end
+puts patch
