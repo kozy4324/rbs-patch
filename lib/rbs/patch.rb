@@ -90,7 +90,7 @@ module RBS
       classes = Set[]
       decls.each do |decl|
         decl.members.each do |member|
-          classes << member.name
+          classes << member.name if member.respond_to?(:name)
         end
       end
       decls.delete_if { |c| classes.include?(c.name) }
