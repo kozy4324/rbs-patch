@@ -5,7 +5,8 @@ require "test_helper"
 module RBS
   class TestPatch < Minitest::Test
     def test_single_rbs_file_converts_to_string
-      p = RBS::Patch.new(<<~RBS)
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
         class A
           def a: () -> void
         end
@@ -19,7 +20,8 @@ module RBS
     end
 
     def test_merges_multiple_classes_into_single_file
-      p = RBS::Patch.new(<<~RBS)
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
         class A
           def a: () -> void
         end
@@ -39,7 +41,8 @@ module RBS
     end
 
     def test_overrides_method_with_annotation
-      p = RBS::Patch.new(<<~RBS)
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
         class A
           def a: () -> void
         end
@@ -59,7 +62,8 @@ module RBS
     end
 
     def test_override_replaces_method_at_original_position
-      p = RBS::Patch.new(<<~RBS)
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
         class A
           def a: () -> void
           def b: () -> void
@@ -83,7 +87,8 @@ module RBS
     end
 
     def test_deletes_method
-      p = RBS::Patch.new(<<~RBS)
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
         class A
           def a: () -> void
           def b: () -> void
@@ -107,7 +112,8 @@ module RBS
     end
 
     def test_inserts_method_after_specific_method
-      p = RBS::Patch.new(<<~RBS)
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
         class A
           def a: () -> void
           def b: () -> void
@@ -132,7 +138,8 @@ module RBS
     end
 
     def test_inserts_method_before_specific_method
-      p = RBS::Patch.new(<<~RBS)
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
         class A
           def a: () -> void
           def b: () -> void

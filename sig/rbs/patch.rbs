@@ -4,7 +4,7 @@ module RBS
 
     @env: untyped
 
-    def initialize: (String source) -> void
+    def initialize: () -> void
 
     def apply: (String source) -> void
 

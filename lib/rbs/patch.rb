@@ -11,9 +11,8 @@ module RBS
     ANNOTATION_APPEND_AFTER   = /\Apatch:append_after:(.*)\Z/
     ANNOTATION_PREPEND_BEFORE = /\Apatch:prepend_before:(.*)\Z/
 
-    def initialize(source)
+    def initialize
       @env = ::RBS::Environment.new
-      apply(source)
     end
 
     def apply(source)
