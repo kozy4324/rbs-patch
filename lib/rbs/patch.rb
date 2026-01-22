@@ -32,16 +32,7 @@ module RBS
       @env.class_decls.each_value.map do |class_entry|
         class_entry.context_decls.map { _2 }.inject do |decl_a, decl_b|
           decl_b.members.delete_if do |member_b|
-            ope, arg = if member_b.annotations.any? { |a| a.string == ANNOTATION_OVERRIDE }
-                         [:override, nil]
-                       elsif member_b.annotations.any? { |a| a.string == ANNOTATION_DELETE }
-                         [:delete, nil]
-                       elsif (anno = member_b.annotations.find { |a| a.string.match(ANNOTATION_APPEND_AFTER) })
-                         [:append_after, anno.string.match(ANNOTATION_APPEND_AFTER)[1]]
-                       elsif (anno = member_b.annotations.find { |a| a.string.match(ANNOTATION_PREPEND_BEFORE) })
-                         [:prepend_before, anno.string.match(ANNOTATION_PREPEND_BEFORE)[1]]
-                       end
-
+            ope, arg = process_annotations(member_b.annotations)
             next unless ope
 
             case ope
@@ -99,6 +90,20 @@ module RBS
       RBS::Writer.new(out: io).write(decls)
       io.rewind
       io.read
+    end
+
+    private
+
+    def process_annotations(annotations)
+      if annotations.any? { |a| a.string == ANNOTATION_OVERRIDE }
+        [:override, nil]
+      elsif annotations.any? { |a| a.string == ANNOTATION_DELETE }
+        [:delete, nil]
+      elsif (anno = annotations.find { |a| a.string.match(ANNOTATION_APPEND_AFTER) })
+        [:append_after, anno.string.match(ANNOTATION_APPEND_AFTER)[1]]
+      elsif (anno = annotations.find { |a| a.string.match(ANNOTATION_PREPEND_BEFORE) })
+        [:prepend_before, anno.string.match(ANNOTATION_PREPEND_BEFORE)[1]]
+      end
     end
   end
 end
