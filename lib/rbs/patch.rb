@@ -29,7 +29,10 @@ module RBS
 
       _, dirs, decls = ::RBS::Parser.parse_signature(source)
       @env.add_source(::RBS::Source::RBS.new(source, dirs, decls))
+
       @env.class_decls.each_value.map do |class_entry|
+        next if process_context_decls(class_entry.context_decls)
+
         class_entry.context_decls.map { _2 }.inject do |decl_a, decl_b|
           process_members(decl_a.members, decl_b.members)
           decl_a
@@ -106,6 +109,43 @@ module RBS
           else
             false
           end
+        end
+      end
+    end
+
+    def process_context_decls(context_decls)
+      context_decls.reject! do |_, decl|
+        ope, = process_annotations(decl.annotations)
+        next unless ope
+
+        case ope
+        when :override
+          index = context_decls.find_index { |_, decl| decl.annotations.empty? }
+          if index
+            annotations = decl.annotations.reject { |a| a.string == ANNOTATION_OVERRIDE }
+            context_decls[index] = [nil, decl.update(annotations:)]
+            true
+          else
+            false
+          end
+          # when :delete
+          #   members_a.reject! { |member_a| member_a.name == member_b.name }
+          # when :append_after, :prepend_before
+          #   target_name = arg.to_sym
+          #   index = members_a.find_index { |member_a| member_a.name == target_name }
+          #   if index
+          #     if ope == :append_after
+          #       offset = 1
+          #       annotations = member_b.annotations.reject { |a| a.string.match(ANNOTATION_APPEND_AFTER) }
+          #     else
+          #       offset = 0
+          #       annotations = member_b.annotations.reject { |a| a.string.match(ANNOTATION_PREPEND_BEFORE) }
+          #     end
+          #     members_a.insert(index + offset, member_b.update(annotations:))
+          #     true
+          #   else
+          #     false
+          #   end
         end
       end
     end

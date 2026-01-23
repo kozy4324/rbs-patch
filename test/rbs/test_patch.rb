@@ -212,5 +212,29 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_overrides_class_with_annotation
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          def a: () -> void
+          def b: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        %a{patch:override}
+        class A
+          def a: (untyped) -> untyped
+          def c: () -> void
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: (untyped) -> untyped
+          def c: () -> void
+        end
+      EXPECTED
+    end
   end
 end
