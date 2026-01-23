@@ -236,5 +236,28 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_deletes_class
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          def a: () -> void
+        end
+        class B
+          def b: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        %a{patch:delete}
+        class A
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class B
+          def b: () -> void
+        end
+      EXPECTED
+    end
   end
 end

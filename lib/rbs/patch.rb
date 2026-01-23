@@ -43,11 +43,13 @@ module RBS
     def to_s
       decls = @env.class_decls.each_value.map do |class_entry|
         decls = class_entry.context_decls.map { _2 }
+        next if decls.empty?
+
         decls.each_with_object(decls.first.update(members: [])) do |decl, new_decl|
           # merge multiple class decls into a single one
           new_decl.members.concat decl.members
         end
-      end
+      end.compact
 
       classes = Set[]
       decls.each do |decl|
@@ -120,7 +122,7 @@ module RBS
 
         case ope
         when :override
-          index = context_decls.find_index { |_, decl| decl.annotations.empty? }
+          index = context_decls.find_index { |_, decl| decl.annotations.all? { |a| a.string != ANNOTATION_OVERRIDE } }
           if index
             annotations = decl.annotations.reject { |a| a.string == ANNOTATION_OVERRIDE }
             context_decls[index] = [nil, decl.update(annotations:)]
@@ -128,8 +130,9 @@ module RBS
           else
             false
           end
-          # when :delete
-          #   members_a.reject! { |member_a| member_a.name == member_b.name }
+        when :delete
+          target_name = decl.name
+          context_decls.reject! { |_, decl| decl.name == target_name }
           # when :append_after, :prepend_before
           #   target_name = arg.to_sym
           #   index = members_a.find_index { |member_a| member_a.name == target_name }
