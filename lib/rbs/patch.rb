@@ -30,6 +30,8 @@ module RBS
       _, dirs, decls = ::RBS::Parser.parse_signature(source)
       @env.add_source(::RBS::Source::RBS.new(source, dirs, decls))
 
+      process_class_decls @env.class_decls
+
       @env.class_decls.each_value.map do |class_entry|
         next if process_context_decls(class_entry.context_decls)
 
@@ -133,24 +135,42 @@ module RBS
         when :delete
           target_name = decl.name
           context_decls.reject! { |_, decl| decl.name == target_name }
-          # when :append_after, :prepend_before
-          #   target_name = arg.to_sym
-          #   index = members_a.find_index { |member_a| member_a.name == target_name }
-          #   if index
-          #     if ope == :append_after
-          #       offset = 1
-          #       annotations = member_b.annotations.reject { |a| a.string.match(ANNOTATION_APPEND_AFTER) }
-          #     else
-          #       offset = 0
-          #       annotations = member_b.annotations.reject { |a| a.string.match(ANNOTATION_PREPEND_BEFORE) }
-          #     end
-          #     members_a.insert(index + offset, member_b.update(annotations:))
-          #     true
-          #   else
-          #     false
-          #   end
         end
       end
+    end
+
+    def process_class_decls(class_decls)
+      ope = nil
+      arg = nil
+      name, = class_decls.find do |_, class_entry|
+        class_entry.context_decls.any? do |_, decl|
+          ope, arg = process_annotations(decl.annotations)
+          %i[append_after prepend_before].include?(ope)
+        end
+      end
+      return unless name
+
+      class_to_relocate = class_decls.delete(name)
+      class_to_relocate.context_decls.map { _2 }.each do |decl|
+        decl.annotations.delete_if do |a|
+          a.string.match(ANNOTATION_APPEND_AFTER) || a.string.match(ANNOTATION_PREPEND_BEFORE)
+        end
+      end
+
+      target_key = RBS::TypeName.new(name: arg.to_sym, namespace: RBS::Namespace.root)
+
+      return unless class_decls.key? target_key
+
+      offset = if ope == :append_after
+                 1
+               else
+                 0
+               end
+      ary = class_decls.to_a
+      class_decls.clear
+      index = ary.find_index { |key, _| key == target_key }
+      ary.insert(index + offset, [name, class_to_relocate])
+      ary.each { |k, v| class_decls[k] = v }
     end
   end
 end
