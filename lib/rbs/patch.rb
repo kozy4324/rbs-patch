@@ -61,6 +61,14 @@ module RBS
       end
       decls.delete_if { |c| classes.include?(c.name) }
 
+      r = lambda { |member|
+        if member.respond_to?(:members)
+          member.members.delete_if { |m| m.respond_to?(:members) && m.members.empty? }
+          member.members.each(&r)
+        end
+      }
+      decls.each(&r)
+
       io = ::StringIO.new
       RBS::Writer.new(out: io).write(decls)
       io.rewind
@@ -150,14 +158,13 @@ module RBS
       end
       return unless name
 
-      class_to_relocate = class_decls.delete(name)
-      class_to_relocate.context_decls.map { _2 }.each do |decl|
-        decl.annotations.delete_if do |a|
-          a.string.match(ANNOTATION_APPEND_AFTER) || a.string.match(ANNOTATION_PREPEND_BEFORE)
-        end
-      end
+      anno_match = ->(a) { a.string.match(ANNOTATION_APPEND_AFTER) || a.string.match(ANNOTATION_PREPEND_BEFORE) }
 
-      target_key = RBS::TypeName.new(name: arg.to_sym, namespace: RBS::Namespace.root)
+      class_to_relocate = class_decls.delete(name)
+      _, decl_to_relocate = class_to_relocate.context_decls.find { |_, decl| decl.annotations.any?(&anno_match) }
+      decl_to_relocate.annotations.delete_if(&anno_match)
+
+      target_key = RBS::TypeName.new(name: arg.to_sym, namespace: name.namespace)
 
       return unless class_decls.key? target_key
 
@@ -166,11 +173,22 @@ module RBS
                else
                  0
                end
+
       ary = class_decls.to_a
       class_decls.clear
       index = ary.find_index { |key, _| key == target_key }
       ary.insert(index + offset, [name, class_to_relocate])
       ary.each { |k, v| class_decls[k] = v }
+
+      class_decls.each do |key, class_entry|
+        class_entry.context_decls.map { _2 }.each do |decl|
+          decl.members.delete(decl_to_relocate)
+          index = decl.members.find_index do |m|
+            RBS::TypeName.parse("#{key}::#{m.name}") == target_key
+          end
+          decl.members.insert(index + offset, decl_to_relocate) if index
+        end
+      end
     end
   end
 end

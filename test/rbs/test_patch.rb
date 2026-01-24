@@ -331,5 +331,59 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_inserts_class_after_specific_class_in_module
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        module M1
+          module M2
+            class A
+              def a: () -> void
+            end
+            class B
+              def b: () -> void
+            end
+          end
+        end
+        module M3
+          class A
+            def a: () -> void
+          end
+        end
+      RBS
+      p.apply(<<~RBS)
+        module M1
+          module M2
+            %a{patch:append_after:A}
+            class C
+              def c: () -> void
+            end
+          end
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        module M1
+          module M2
+            class A
+              def a: () -> void
+            end
+
+            class C
+              def c: () -> void
+            end
+
+            class B
+              def b: () -> void
+            end
+          end
+        end
+        module M3
+          class A
+            def a: () -> void
+          end
+        end
+      EXPECTED
+    end
   end
 end
