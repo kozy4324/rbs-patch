@@ -59,9 +59,9 @@ module RBS
       decls.each do |decl|
         name_stack << decl.name.to_s
         if decl.is_a?(RBS::AST::Members::Base)
-          yield decl, "::#{name_stack[..-2].join("::")}##{name_stack[-1]}"
+          yield decl, "#{name_stack[..-2].join("::")}##{name_stack[-1]}"
         else
-          yield decl, "::#{name_stack.join("::")}"
+          yield decl, name_stack.join("::")
         end
         walk(decl.members, name_stack, &block) if decl.respond_to?(:members)
         name_stack.pop
