@@ -63,14 +63,14 @@ module RBS
 
     def test_override_replaces_method_at_original_position
       p = RBS::Patch.new
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           def a: () -> void
           def b: () -> void
           def c: () -> void
         end
       RBS
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           %a{patch:override}
           def b: (untyped) -> untyped
@@ -88,14 +88,14 @@ module RBS
 
     def test_deletes_method
       p = RBS::Patch.new
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           def a: () -> void
           def b: () -> void
           def c: () -> void
         end
       RBS
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           %a{patch:delete}
           def b: () -> void

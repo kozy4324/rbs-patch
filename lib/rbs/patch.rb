@@ -91,6 +91,8 @@ module RBS
         case ope
         when :override
           override(name, with: decl)
+        when :delete
+          delete(name)
         else
           add(decl, to: name)
         end
@@ -144,6 +146,16 @@ module RBS
       end
       map[namespace].members[index] = with
       with.annotations.delete_if { |a| process_annotations([a]) }
+    end
+
+    def delete(name)
+      map = decl_map
+      return unless map.key?(name)
+
+      sep = name.index("#") ? "#" : "::"
+      namespace, _, name = name.rpartition(sep)
+
+      map[namespace].members.delete_if { |m| m.name.to_s == name }
     end
 
     def process_annotations(annotations)
