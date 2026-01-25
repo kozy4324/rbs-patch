@@ -165,8 +165,8 @@ module RBS
 
     def test_loads_from_file
       p = RBS::Patch.new
-      p.apply(path: Pathname("#{__dir__}/../files/a.rbs"))
-      p.apply(path: Pathname("#{__dir__}/../files/a_patch.rbs"))
+      p.apply2(path: Pathname("#{__dir__}/../files/a.rbs"))
+      p.apply2(path: Pathname("#{__dir__}/../files/a_patch.rbs"))
 
       assert_equal(<<~EXPECTED, p.to_s)
         class A
@@ -177,8 +177,8 @@ module RBS
 
     def test_loads_from_directory
       p = RBS::Patch.new
-      p.apply(path: Pathname("#{__dir__}/../files/dir_a"))
-      p.apply(path: Pathname("#{__dir__}/../files/dir_b"))
+      p.apply2(path: Pathname("#{__dir__}/../files/dir_a"))
+      p.apply2(path: Pathname("#{__dir__}/../files/dir_b"))
 
       assert_equal(<<~EXPECTED, p.to_s)
         class A
@@ -192,7 +192,7 @@ module RBS
 
     def test_nested_module_structure
       p = RBS::Patch.new
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         module M_OUTER
           module M_INNER
             class A
@@ -215,13 +215,13 @@ module RBS
 
     def test_overrides_class_with_annotation
       p = RBS::Patch.new
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           def a: () -> void
           def b: () -> void
         end
       RBS
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         %a{patch:override}
         class A
           def a: (untyped) -> untyped

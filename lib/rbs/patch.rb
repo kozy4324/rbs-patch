@@ -83,7 +83,18 @@ module RBS
       io.read
     end
 
-    def apply2(source)
+    def apply2(source = nil, path: nil)
+      unless path.nil?
+        files = Set[]
+        ::RBS::FileFinder.each_file(path, skip_hidden: true) do |path|
+          next if files.include?(path)
+
+          files << path
+          apply2 Buffer.new(name: path, content: path.read(encoding: "UTF-8"))
+        end
+        return
+      end
+
       _, _, decls = ::RBS::Parser.parse_signature(source)
       walk(decls) do |decl, name|
         ope, arg = process_annotations(decl.annotations)
@@ -154,10 +165,16 @@ module RBS
       sep = with.is_a?(RBS::AST::Members::Base) ? "#" : "::"
       namespace, _, name = name.rpartition(sep)
 
-      index = map[namespace].members.find_index do |m|
-        m.name.to_s == name
+      if namespace.empty?
+        # top level decl
+        index = @decls.find_index { |d| d.name.to_s == name }
+        @decls[index] = with
+      else
+        index = map[namespace].members.find_index do |m|
+          m.name.to_s == name
+        end
+        map[namespace].members[index] = with
       end
-      map[namespace].members[index] = with
       with.annotations.delete_if { |a| process_annotations([a]) }
     end
 
