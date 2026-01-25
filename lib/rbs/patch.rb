@@ -142,15 +142,17 @@ module RBS
       sep = decl.is_a?(RBS::AST::Members::Base) ? "#" : "::"
       namespace, = to.rpartition(sep)
 
-      if map.key?(namespace)
+      target = namespace.empty? ? @decls : map[namespace]&.members
+
+      if target
         if after
-          index = map[namespace].members.find_index { |m| m.name.to_s == after }
-          map[namespace].members.insert(index + 1, decl)
+          index = target.find_index { |m| m.name.to_s == after }
+          target.insert(index + 1, decl)
         elsif before
-          index = map[namespace].members.find_index { |m| m.name.to_s == before }
-          map[namespace].members.insert(index, decl)
+          index = target.find_index { |m| m.name.to_s == before }
+          target.insert(index, decl)
         else
-          map[namespace].members << decl
+          target << decl
         end
         decl.annotations.delete_if { |a| process_annotations([a]) }
       else

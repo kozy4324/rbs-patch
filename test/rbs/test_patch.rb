@@ -262,7 +262,7 @@ module RBS
 
     def test_inserts_class_after_specific_class
       p = RBS::Patch.new
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           def a: () -> void
         end
@@ -273,7 +273,7 @@ module RBS
           def c: () -> void
         end
       RBS
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         %a{patch:append_after:A}
         class D
           def d: () -> void
