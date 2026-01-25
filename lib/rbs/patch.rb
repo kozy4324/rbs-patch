@@ -13,6 +13,7 @@ module RBS
 
     def initialize
       @env = ::RBS::Environment.new
+      @decls = []
     end
 
     def apply(source = nil, path: nil)
@@ -43,6 +44,13 @@ module RBS
     end
 
     def to_s
+      unless @decls.empty?
+        io = ::StringIO.new
+        RBS::Writer.new(out: io).write(@decls)
+        io.rewind
+        return io.read
+      end
+
       decls = @env.class_decls.each_value.map do |class_entry|
         decls = class_entry.context_decls.map { _2 }
         next if decls.empty?
@@ -75,7 +83,47 @@ module RBS
       io.read
     end
 
+    def apply2(source)
+      _, _, decls = ::RBS::Parser.parse_signature(source)
+      walk(decls) do |decl, namespace|
+        add(decl, to: namespace)
+      end
+    end
+
     private
+
+    def walk(decls, name_stack = [], &block)
+      decls.each do |decl|
+        name_stack << decl.name.to_s
+        if decl.is_a?(RBS::AST::Members::Base)
+          yield decl, "::#{name_stack[..-2].join("::")}##{name_stack[-1]}"
+        else
+          yield decl, "::#{name_stack.join("::")}"
+        end
+        walk(decl.members, name_stack, &block) if decl.respond_to?(:members)
+        name_stack.pop
+      end
+    end
+
+    def decl_map
+      map = {}
+      walk(@decls) { |decl, namespace| map[namespace] = decl }
+      map
+    end
+
+    def add(decl, to:)
+      map = decl_map
+      return if map.key?(to)
+
+      sep = decl.is_a?(RBS::AST::Members::Base) ? "#" : "::"
+      namespace, = to.rpartition(sep)
+
+      if map.key?(namespace)
+        map[namespace].members << decl
+      else
+        @decls << decl
+      end
+    end
 
     def process_annotations(annotations)
       if annotations.any? { |a| a.string == ANNOTATION_OVERRIDE }

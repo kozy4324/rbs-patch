@@ -6,7 +6,7 @@ module RBS
   class TestPatch < Minitest::Test
     def test_single_rbs_file_converts_to_string
       p = RBS::Patch.new
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           def a: () -> void
         end
@@ -21,12 +21,12 @@ module RBS
 
     def test_merges_multiple_classes_into_single_file
       p = RBS::Patch.new
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           def a: () -> void
         end
       RBS
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           def b: () -> void
         end
