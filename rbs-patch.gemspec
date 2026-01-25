@@ -34,5 +34,5 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "rbs", "4.0.0.dev.5"
+  spec.add_dependency "rbs", "~> 3.0"
 end

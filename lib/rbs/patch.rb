@@ -17,9 +17,9 @@ module RBS
 
     def to_s
       io = ::StringIO.new
-      RBS::Writer.new(out: io).write(@decls)
+      ::RBS::Writer.new(out: io).write(@decls)
       io.rewind
-      io.read
+      io.read || ""
     end
 
     def apply(source = nil, path: nil)
@@ -29,14 +29,14 @@ module RBS
           next if files.include?(path)
 
           files << path
-          apply Buffer.new(name: path, content: path.read(encoding: "UTF-8"))
+          apply ::RBS::Buffer.new(name: path, content: path.read(encoding: "UTF-8"))
         end
         return
       end
 
       _, _, decls = ::RBS::Parser.parse_signature(source)
       walk(decls) do |decl, name|
-        ope, arg = process_annotations(decl.annotations)
+        ope, arg = process_annotations(decl.annotations) if decl.respond_to?(:annotations) # steep:ignore
 
         case ope
         when :override
@@ -57,18 +57,31 @@ module RBS
 
     def walk(decls, name_stack = [], &block)
       decls.each do |decl|
-        name_stack << decl.name.to_s
-        if decl.is_a?(RBS::AST::Members::Base)
-          yield decl, "#{name_stack[..-2].join("::")}##{name_stack[-1]}"
+        name = if decl.is_a?(::RBS::AST::Declarations::AliasDecl) # rubocop:disable Style/CaseLikeIf
+                 decl.new_name.to_s
+               elsif decl.is_a?(::RBS::AST::Declarations::Base)
+                 decl.name.to_s
+               elsif decl.is_a?(::RBS::AST::Members::LocationOnly)
+                 ""
+               elsif decl.is_a?(::RBS::AST::Members::Alias) # rubocop:disable Lint/DuplicateBranch
+                 decl.new_name.to_s
+               else # rubocop:disable Lint/DuplicateBranch
+                 # ::RBS::AST::Members::t
+                 decl.name.to_s
+               end
+        name_stack << name
+        if decl.is_a?(::RBS::AST::Members::Base)
+          yield decl, "#{name_stack[..-2]&.join("::")}##{name_stack[-1]}"
         else
           yield decl, name_stack.join("::")
         end
-        walk(decl.members, name_stack, &block) if decl.respond_to?(:members)
+        walk(decl.members, name_stack, &block) if decl.is_a?(::RBS::AST::Declarations::NestedDeclarationHelper)
         name_stack.pop
       end
     end
 
     def decl_map
+      # @type var map: Hash[String, ::RBS::Patch::t]
       map = {}
       walk(@decls) { |decl, name| map[name] = decl }
       map
@@ -78,18 +91,19 @@ module RBS
       map = decl_map
       return if map.key?(to)
 
-      sep = decl.is_a?(RBS::AST::Members::Base) ? "#" : "::"
+      sep = decl.is_a?(::RBS::AST::Members::Base) ? "#" : "::"
       namespace, = to.rpartition(sep)
 
-      target = namespace.empty? ? @decls : map[namespace]&.members
+      target = namespace.empty? ? @decls : map[namespace]&.members # steep:ignore
 
+      # steep:ignore:start
       if target
         if after
           index = target.find_index { |m| m.name.to_s == after }
-          target.insert(index + 1, decl)
+          target.insert(index + 1, decl) if index
         elsif before
           index = target.find_index { |m| m.name.to_s == before }
-          target.insert(index, decl)
+          target.insert(index, decl) if index
         else
           target << decl
         end
@@ -97,15 +111,17 @@ module RBS
       else
         @decls << decl
       end
+      # steep:ignore:end
     end
 
     def override(name, with:)
       map = decl_map
       return unless map.key?(name)
 
-      sep = with.is_a?(RBS::AST::Members::Base) ? "#" : "::"
+      sep = with.is_a?(::RBS::AST::Members::Base) ? "#" : "::"
       namespace, _, name = name.rpartition(sep)
 
+      # steep:ignore:start
       if namespace.empty?
         # top level decl
         index = @decls.find_index { |d| d.name.to_s == name }
@@ -117,6 +133,7 @@ module RBS
         map[namespace].members[index] = with
       end
       with.annotations.delete_if { |a| process_annotations([a]) }
+      # steep:ignore:end
     end
 
     def delete(name)
@@ -126,23 +143,25 @@ module RBS
       sep = name.index("#") ? "#" : "::"
       namespace, _, name = name.rpartition(sep)
 
+      # steep:ignore:start
       if namespace.empty?
         # top level decl
         @decls.delete_if { |d| d.name.to_s == name }
       else
         map[namespace].members.delete_if { |m| m.name.to_s == name }
       end
+      # steep:ignore:end
     end
 
-    def process_annotations(annotations)
+    def process_annotations(annotations) # steep:ignore
       if annotations.any? { |a| a.string == ANNOTATION_OVERRIDE }
         [:override, nil]
       elsif annotations.any? { |a| a.string == ANNOTATION_DELETE }
         [:delete, nil]
       elsif (anno = annotations.find { |a| a.string.match(ANNOTATION_APPEND_AFTER) })
-        [:append_after, anno.string.match(ANNOTATION_APPEND_AFTER)[1]]
+        [:append_after, anno.string.match(ANNOTATION_APPEND_AFTER)&.[](1) || ""]
       elsif (anno = annotations.find { |a| a.string.match(ANNOTATION_PREPEND_BEFORE) })
-        [:prepend_before, anno.string.match(ANNOTATION_PREPEND_BEFORE)[1]]
+        [:prepend_before, anno.string.match(ANNOTATION_PREPEND_BEFORE)&.[](1) || ""]
       end
     end
   end
