@@ -239,7 +239,7 @@ module RBS
 
     def test_deletes_class
       p = RBS::Patch.new
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           def a: () -> void
         end
@@ -247,7 +247,7 @@ module RBS
           def b: () -> void
         end
       RBS
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         %a{patch:delete}
         class A
         end

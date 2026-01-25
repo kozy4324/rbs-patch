@@ -185,7 +185,12 @@ module RBS
       sep = name.index("#") ? "#" : "::"
       namespace, _, name = name.rpartition(sep)
 
-      map[namespace].members.delete_if { |m| m.name.to_s == name }
+      if namespace.empty?
+        # top level decl
+        @decls.delete_if { |d| d.name.to_s == name }
+      else
+        map[namespace].members.delete_if { |m| m.name.to_s == name }
+      end
     end
 
     def process_annotations(annotations)
