@@ -6,6 +6,8 @@ require "rbs/patch"
 require "pathname"
 
 if ARGV.empty?
+  puts "rbs-patch #{RBS::Patch::VERSION}"
+  puts ""
   puts "Usage: rbs-patch RBS_FILE_PATH [RBS_FILE_PATH ...]"
   puts ""
   puts "Examples:"
