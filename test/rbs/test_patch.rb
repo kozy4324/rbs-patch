@@ -42,12 +42,12 @@ module RBS
 
     def test_overrides_method_with_annotation
       p = RBS::Patch.new
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           def a: () -> void
         end
       RBS
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           %a{patch:override}
           def a: (untyped) -> untyped

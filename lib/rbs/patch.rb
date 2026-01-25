@@ -85,8 +85,15 @@ module RBS
 
     def apply2(source)
       _, _, decls = ::RBS::Parser.parse_signature(source)
-      walk(decls) do |decl, namespace|
-        add(decl, to: namespace)
+      walk(decls) do |decl, name|
+        ope, = process_annotations(decl.annotations)
+
+        case ope
+        when :override
+          override(name, with: decl)
+        else
+          add(decl, to: name)
+        end
       end
     end
 
@@ -107,7 +114,7 @@ module RBS
 
     def decl_map
       map = {}
-      walk(@decls) { |decl, namespace| map[namespace] = decl }
+      walk(@decls) { |decl, name| map[name] = decl }
       map
     end
 
@@ -123,6 +130,20 @@ module RBS
       else
         @decls << decl
       end
+    end
+
+    def override(name, with:)
+      map = decl_map
+      return unless map.key?(name)
+
+      sep = with.is_a?(RBS::AST::Members::Base) ? "#" : "::"
+      namespace, _, name = name.rpartition(sep)
+
+      index = map[namespace].members.find_index do |m|
+        m.name.to_s == name
+      end
+      map[namespace].members[index] = with
+      with.annotations.delete_if { |a| process_annotations([a]) }
     end
 
     def process_annotations(annotations)
