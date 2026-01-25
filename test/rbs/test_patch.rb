@@ -113,14 +113,14 @@ module RBS
 
     def test_inserts_method_after_specific_method
       p = RBS::Patch.new
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           def a: () -> void
           def b: () -> void
           def c: () -> void
         end
       RBS
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           %a{patch:append_after:a}
           def d: () -> void
@@ -139,14 +139,14 @@ module RBS
 
     def test_inserts_method_before_specific_method
       p = RBS::Patch.new
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           def a: () -> void
           def b: () -> void
           def c: () -> void
         end
       RBS
-      p.apply(<<~RBS)
+      p.apply2(<<~RBS)
         class A
           %a{patch:prepend_before:a}
           def d: () -> void
