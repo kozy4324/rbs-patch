@@ -8,8 +8,8 @@ module RBS
   class Patch # rubocop:disable Style/Documentation
     ANNOTATION_OVERRIDE       = "patch:override"
     ANNOTATION_DELETE         = "patch:delete"
-    ANNOTATION_APPEND_AFTER   = /\Apatch:append_after:(.*)\Z/
-    ANNOTATION_PREPEND_BEFORE = /\Apatch:prepend_before:(.*)\Z/
+    ANNOTATION_APPEND_AFTER   = /\Apatch:append_after\((.*)\)\Z/
+    ANNOTATION_PREPEND_BEFORE = /\Apatch:prepend_before\((.*)\)\Z/
 
     def initialize
       @decls = []

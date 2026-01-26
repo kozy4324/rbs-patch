@@ -122,7 +122,7 @@ module RBS
       RBS
       p.apply(<<~RBS)
         class A
-          %a{patch:append_after:a}
+          %a{patch:append_after(a)}
           def d: () -> void
         end
       RBS
@@ -148,7 +148,7 @@ module RBS
       RBS
       p.apply(<<~RBS)
         class A
-          %a{patch:prepend_before:a}
+          %a{patch:prepend_before(a)}
           def d: () -> void
         end
       RBS
@@ -274,7 +274,7 @@ module RBS
         end
       RBS
       p.apply(<<~RBS)
-        %a{patch:append_after:A}
+        %a{patch:append_after(A)}
         class D
           def d: () -> void
         end
@@ -310,7 +310,7 @@ module RBS
         end
       RBS
       p.apply(<<~RBS)
-        %a{patch:prepend_before:A}
+        %a{patch:prepend_before(A)}
         class D
           def d: () -> void
         end
@@ -354,7 +354,7 @@ module RBS
       p.apply(<<~RBS)
         module M1
           module M2
-            %a{patch:append_after:A}
+            %a{patch:append_after(A)}
             class C
               def c: () -> void
             end

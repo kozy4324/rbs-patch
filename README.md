@@ -88,20 +88,20 @@ class User
 end
 ```
 
-##### `append_after:method_name` - Insert method after specified method
+##### `append_after(method_name)` - Insert method after specified method
 
 ```ruby
 class User
-  %a{patch:append_after:name}
+  %a{patch:append_after(name)}
   def nickname: () -> String?  # Inserts after the 'name' method
 end
 ```
 
-##### `prepend_before:method_name` - Insert method before specified method
+##### `prepend_before(method_name)` - Insert method before specified method
 
 ```ruby
 class User
-  %a{patch:prepend_before:name}
+  %a{patch:prepend_before(name)}
   def id: () -> Integer  # Inserts before the 'name' method
 end
 ```
@@ -125,19 +125,19 @@ class User
 end  # Removes the entire User class
 ```
 
-##### `append_after:ClassName` - Insert class/module after specified class
+##### `append_after(ClassName)` - Insert class/module after specified class
 
 ```ruby
-%a{patch:append_after:User}
+%a{patch:append_after(User)}
 class Admin
   def permissions: () -> Array[String]
 end  # Inserts Admin class after User class
 ```
 
-##### `prepend_before:ClassName` - Insert class/module before specified class
+##### `prepend_before(ClassName)` - Insert class/module before specified class
 
 ```ruby
-%a{patch:prepend_before:User}
+%a{patch:prepend_before(User)}
 class Guest
   def readonly: () -> bool
 end  # Inserts Guest class before User class
@@ -150,7 +150,7 @@ Operations work correctly within nested module structures:
 ```ruby
 module MyApp
   module Models
-    %a{patch:append_after:User}
+    %a{patch:append_after(User)}
     class Admin
       def role: () -> String
     end
