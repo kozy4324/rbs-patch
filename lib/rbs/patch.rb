@@ -148,14 +148,12 @@ module RBS
       sep = name.index("#") ? "#" : "::"
       namespace, _, name = name.rpartition(sep)
 
-      # steep:ignore:start
       if namespace.empty?
         # top level decl
-        @decls.delete_if { |d| d.name.to_s == name }
+        @decls.delete_if { |d| extract_name(d) == name }
       else
-        map[namespace].members.delete_if { |m| m.name.to_s == name }
+        extract_members(map[namespace])&.delete_if { |m| extract_name(m) == name }
       end
-      # steep:ignore:end
     end
 
     def process_annotations(annotations) # steep:ignore

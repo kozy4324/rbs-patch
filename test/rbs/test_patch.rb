@@ -462,5 +462,27 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_deletes_alias
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          def a: () -> void
+          alias b a
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          %a{patch:delete}
+          alias b a
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: () -> void
+        end
+      EXPECTED
+    end
   end
 end
