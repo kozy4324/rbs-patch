@@ -437,5 +437,30 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_overrides_alias
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          def a: () -> void
+          def b: () -> void
+          alias c a
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          %a{patch:override}
+          alias c b
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: () -> void
+          def b: () -> void
+          alias c b
+        end
+      EXPECTED
+    end
   end
 end

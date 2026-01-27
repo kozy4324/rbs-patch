@@ -127,19 +127,18 @@ module RBS
       sep = with.is_a?(::RBS::AST::Members::Base) ? "#" : "::"
       namespace, _, name = name.rpartition(sep)
 
-      # steep:ignore:start
       if namespace.empty?
         # top level decl
-        index = @decls.find_index { |d| d.name.to_s == name }
-        @decls[index] = with
+        index = @decls.find_index { |d| extract_name(d) == name }
+        @decls[index] = with # steep:ignore
       else
-        index = map[namespace].members.find_index do |m|
-          m.name.to_s == name
+        members = extract_members(map[namespace])
+        index = members.find_index do |m| # steep:ignore
+          extract_name(m) == name
         end
-        map[namespace].members[index] = with
+        members[index] = with # steep:ignore
       end
-      with.annotations.delete_if { |a| process_annotations([a]) }
-      # steep:ignore:end
+      with.annotations.delete_if { |a| process_annotations([a]) } # steep:ignore
     end
 
     def delete(name)
