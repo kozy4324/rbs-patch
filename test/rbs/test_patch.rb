@@ -484,5 +484,38 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_inserts_multiple_methods_at_same_location
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          def a: () -> void
+          def b: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          %a{patch:append_after(a)}
+          def c: () -> void
+          %a{patch:append_after(c)}
+          def d: () -> void
+          %a{patch:prepend_before(b)}
+          def e: () -> void
+          %a{patch:prepend_before(b)}
+          def f: () -> void
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: () -> void
+          def c: () -> void
+          def d: () -> void
+          def e: () -> void
+          def f: () -> void
+          def b: () -> void
+        end
+      EXPECTED
+    end
   end
 end

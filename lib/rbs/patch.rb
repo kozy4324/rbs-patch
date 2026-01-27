@@ -105,16 +105,26 @@ module RBS
       target = namespace.empty? ? @decls : extract_members(map[namespace])
 
       if target
+        decl.annotations.delete_if { |a| process_annotations([a]) } # steep:ignore
         if after
           index = target.find_index { |m| extract_name(m) == after }
-          target.insert(index + 1, decl) if index
+          if index
+            # steep:ignore:start
+            decl = decl.update(location: target[index].location.dup) if decl.respond_to?(:update) # rubocop:disable Style/RedundantSelfAssignment
+            # steep:ignore:end
+            target.insert(index + 1, decl)
+          end
         elsif before
           index = target.find_index { |m| extract_name(m) == before }
-          target.insert(index, decl) if index
+          if index
+            # steep:ignore:start
+            decl = decl.update(location: target[index].location.dup) if decl.respond_to?(:update) # rubocop:disable Style/RedundantSelfAssignment
+            # steep:ignore:end
+            target.insert(index, decl)
+          end
         else
           target << decl
         end
-        decl.annotations.delete_if { |a| process_annotations([a]) } # steep:ignore
       else
         @decls << decl # steep:ignore
       end
