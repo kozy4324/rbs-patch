@@ -385,5 +385,57 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_inserts_alias_after_specific_method
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          def a: () -> void
+          def b: () -> void
+          def c: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          %a{patch:append_after(a)}
+          alias d a
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: () -> void
+          alias d a
+          def b: () -> void
+          def c: () -> void
+        end
+      EXPECTED
+    end
+
+    def test_inserts_method_after_specific_alias
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          def a: () -> void
+          alias b a
+          def c: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          %a{patch:append_after(b)}
+          def d: () -> void
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: () -> void
+          alias b a
+          def d: () -> void
+          def c: () -> void
+        end
+      EXPECTED
+    end
   end
 end

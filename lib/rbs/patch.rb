@@ -55,27 +55,35 @@ module RBS
 
     private
 
+    def extract_name(decl)
+      if decl.is_a?(::RBS::AST::Declarations::AliasDecl) # rubocop:disable Style/CaseLikeIf
+        decl.new_name.to_s
+      elsif decl.is_a?(::RBS::AST::Declarations::Base)
+        decl.name.to_s
+      elsif decl.is_a?(::RBS::AST::Members::LocationOnly)
+        ""
+      elsif decl.is_a?(::RBS::AST::Members::Alias) # rubocop:disable Lint/DuplicateBranch
+        decl.new_name.to_s
+      else # rubocop:disable Lint/DuplicateBranch
+        # ::RBS::AST::Members::t
+        decl.name.to_s
+      end
+    end
+
+    def extract_members(decl)
+      decl.members if decl.is_a?(::RBS::AST::Declarations::NestedDeclarationHelper)
+    end
+
     def walk(decls, name_stack = [], &block)
       decls.each do |decl|
-        name = if decl.is_a?(::RBS::AST::Declarations::AliasDecl) # rubocop:disable Style/CaseLikeIf
-                 decl.new_name.to_s
-               elsif decl.is_a?(::RBS::AST::Declarations::Base)
-                 decl.name.to_s
-               elsif decl.is_a?(::RBS::AST::Members::LocationOnly)
-                 ""
-               elsif decl.is_a?(::RBS::AST::Members::Alias) # rubocop:disable Lint/DuplicateBranch
-                 decl.new_name.to_s
-               else # rubocop:disable Lint/DuplicateBranch
-                 # ::RBS::AST::Members::t
-                 decl.name.to_s
-               end
-        name_stack << name
+        name_stack << extract_name(decl)
         if decl.is_a?(::RBS::AST::Members::Base)
           yield decl, "#{name_stack[..-2]&.join("::")}##{name_stack[-1]}"
         else
           yield decl, name_stack.join("::")
         end
-        walk(decl.members, name_stack, &block) if decl.is_a?(::RBS::AST::Declarations::NestedDeclarationHelper)
+        members = extract_members(decl)
+        walk(members, name_stack, &block) if members
         name_stack.pop
       end
     end
@@ -94,24 +102,22 @@ module RBS
       sep = decl.is_a?(::RBS::AST::Members::Base) ? "#" : "::"
       namespace, = to.rpartition(sep)
 
-      target = namespace.empty? ? @decls : map[namespace]&.members # steep:ignore
+      target = namespace.empty? ? @decls : extract_members(map[namespace])
 
-      # steep:ignore:start
       if target
         if after
-          index = target.find_index { |m| m.name.to_s == after }
+          index = target.find_index { |m| extract_name(m) == after }
           target.insert(index + 1, decl) if index
         elsif before
-          index = target.find_index { |m| m.name.to_s == before }
+          index = target.find_index { |m| extract_name(m) == before }
           target.insert(index, decl) if index
         else
           target << decl
         end
-        decl.annotations.delete_if { |a| process_annotations([a]) }
+        decl.annotations.delete_if { |a| process_annotations([a]) } # steep:ignore
       else
-        @decls << decl
+        @decls << decl # steep:ignore
       end
-      # steep:ignore:end
     end
 
     def override(name, with:)
