@@ -74,6 +74,25 @@ module RBS
       decl.members if decl.is_a?(::RBS::AST::Declarations::NestedDeclarationHelper)
     end
 
+    def update(decl, location:)
+      if decl.respond_to?(:update)
+        # steep:ignore:start
+        decl.update(location:)
+        # steep:ignore:end
+      elsif decl.is_a?(AST::Members::Alias)
+        AST::Members::Alias.new(
+          new_name: decl.new_name,
+          old_name: decl.old_name,
+          kind: decl.kind,
+          annotations: decl.annotations,
+          location: location,
+          comment: decl.comment
+        )
+      else
+        decl
+      end
+    end
+
     def walk(decls, name_stack = [], &block)
       decls.each do |decl|
         name_stack << extract_name(decl)
@@ -109,17 +128,13 @@ module RBS
         if after
           index = target.find_index { |m| extract_name(m) == after }
           if index
-            # steep:ignore:start
-            decl = decl.update(location: target[index].location.dup) if decl.respond_to?(:update) # rubocop:disable Style/RedundantSelfAssignment
-            # steep:ignore:end
+            decl = update(decl, location: target[index].location.dup)
             target.insert(index + 1, decl)
           end
         elsif before
           index = target.find_index { |m| extract_name(m) == before }
           if index
-            # steep:ignore:start
-            decl = decl.update(location: target[index].location.dup) if decl.respond_to?(:update) # rubocop:disable Style/RedundantSelfAssignment
-            # steep:ignore:end
+            decl = update(decl, location: target[index].location.dup)
             target.insert(index, decl)
           end
         else

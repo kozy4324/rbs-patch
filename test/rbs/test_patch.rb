@@ -517,5 +517,38 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_inserts_multiple_aliases_at_same_location
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          def a: () -> void
+          def b: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          %a{patch:append_after(a)}
+          alias c a
+          %a{patch:append_after(c)}
+          alias d a
+          %a{patch:prepend_before(b)}
+          alias e a
+          %a{patch:prepend_before(b)}
+          alias f a
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: () -> void
+          alias c a
+          alias d a
+          alias e a
+          alias f a
+          def b: () -> void
+        end
+      EXPECTED
+    end
   end
 end

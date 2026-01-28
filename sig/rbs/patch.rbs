@@ -26,6 +26,8 @@ module RBS
 
     def extract_members: (t decl) -> (Array[::RBS::AST::Declarations::Class::member] | Array[::RBS::AST::Declarations::Module::member] | nil)
 
+    def update: (t decl, location: untyped) -> t
+
     def walk: (Array[t] decls, ?Array[String] name_stack) { (::RBS::AST::Declarations::t | ::RBS::AST::Members::t, String) -> void } -> void
 
     def decl_map: () -> Hash[String, t]
