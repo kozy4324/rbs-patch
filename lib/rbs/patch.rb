@@ -97,6 +97,10 @@ module RBS
           new_name: decl.new_name, old_name: decl.old_name, location: location, comment: decl.comment,
           annotations: decl.annotations
         )
+      elsif decl.is_a?(AST::Members::Mixin)
+        decl.class.new(
+          name: decl.name, args: decl.args, annotations: decl.annotations, location: location, comment: decl.comment
+        )
       elsif decl.is_a?(AST::Members::Alias)
         decl.class.new(
           new_name: decl.new_name, old_name: decl.old_name, kind: decl.kind, annotations: decl.annotations,
@@ -137,25 +141,43 @@ module RBS
 
       target = namespace.empty? ? @decls : extract_members(map[namespace])
 
-      if target
-        decl.annotations.delete_if { |a| process_annotations([a]) } # steep:ignore
-        if after
-          index = target.find_index { |m| extract_name(m) == after }
-          if index
-            decl = update(decl, location: target[index].location.dup)
-            target.insert(index + 1, decl)
-          end
-        elsif before
-          index = target.find_index { |m| extract_name(m) == before }
+      unless target
+        @decls << decl # steep:ignore
+        return
+      end
+
+      if decl.is_a?(AST::Members::Var)
+        # AST::Members::Var does not support annotations.
+        index = target.rindex { |m| m.is_a?(decl.class) }
+        if index
+          decl = update(decl, location: target[index].location.dup)
+          target.insert(index + 1, decl)
+        else
+          index = target.find_index { |m| m.is_a?(AST::Members::MethodDefinition) }
           if index
             decl = update(decl, location: target[index].location.dup)
             target.insert(index, decl)
+          else
+            target << decl
           end
+        end
+      else
+        decl.annotations.delete_if { |a| process_annotations([a]) } # steep:ignore
+        if after
+          index = target.find_index { |m| extract_name(m) == after }
+          return unless index
+
+          decl = update(decl, location: target[index].location.dup)
+          target.insert(index + 1, decl)
+        elsif before
+          index = target.find_index { |m| extract_name(m) == before }
+          return unless index
+
+          decl = update(decl, location: target[index].location.dup)
+          target.insert(index, decl)
         else
           target << decl
         end
-      else
-        @decls << decl # steep:ignore
       end
     end
 

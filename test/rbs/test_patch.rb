@@ -608,5 +608,164 @@ module RBS
         module MA2 = M2
       EXPECTED
     end
+
+    def test_inserts_all_kinds_of_members
+      p = RBS::Patch.new
+      # type t = MethodDefinition | InstanceVariable | ClassInstanceVariable | ClassVariable | Include | Extend
+      #        | Prepend | AttrReader | AttrWriter | AttrAccessor | Public | Private | Alias
+      p.apply(<<~RBS)
+        class C
+          def m1: () -> void
+          @iv1: String
+          self.@civ1: String
+          @@cv1: String
+          include Foo1
+          extend Hoge1
+          prepend Bar1
+          attr_reader attrr1: String
+          attr_writer attrw1: String
+          attr_accessor attra1: String
+          public
+          def public_method1: () -> void
+          private
+          def private_method1: () -> void
+          alias dest1 orig1
+        end
+      RBS
+      p.apply(<<~RBS)
+        class C
+          %a{patch:append_after(m1)}
+          def m2: () -> void
+          @iv2: String
+          self.@civ2: String
+          @@cv2: String
+          %a{patch:append_after(Foo1)}
+          include Foo2
+          %a{patch:append_after(Hoge1)}
+          extend Hoge2
+          %a{patch:append_after(Bar1)}
+          prepend Bar2
+          %a{patch:append_after(attrr1)}
+          attr_reader attrr2: String
+          %a{patch:append_after(attrw1)}
+          attr_writer attrw2: String
+          %a{patch:append_after(attra1)}
+          attr_accessor attra2: String
+          public
+          %a{patch:append_after(public_method1)}
+          def public_method2: () -> void
+          private
+          %a{patch:append_after(private_method1)}
+          def private_method2: () -> void
+          %a{patch:append_after(dest1)}
+          alias dest2 orig2
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class C
+          def m1: () -> void
+          def m2: () -> void
+          @iv1: String
+          @iv2: String
+          self.@civ1: String
+          self.@civ2: String
+          @@cv1: String
+          @@cv2: String
+          include Foo1
+          include Foo2
+          extend Hoge1
+          extend Hoge2
+          prepend Bar1
+          prepend Bar2
+          attr_reader attrr1: String
+          attr_reader attrr2: String
+          attr_writer attrw1: String
+          attr_writer attrw2: String
+          attr_accessor attra1: String
+          attr_accessor attra2: String
+          public
+          def public_method1: () -> void
+          def public_method2: () -> void
+          private
+          def private_method1: () -> void
+          def private_method2: () -> void
+          alias dest1 orig1
+          alias dest2 orig2
+        end
+      EXPECTED
+    end
+
+    def test_inserts_variables_after_same_kind
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class C
+          @@cv: String
+          @iv1: String
+          self.@civ: String
+          def m: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class C
+          @iv2: String
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class C
+          @@cv: String
+          @iv1: String
+          @iv2: String
+
+          self.@civ: String
+          def m: () -> void
+        end
+      EXPECTED
+    end
+
+    def test_inserts_variables_before_methods_when_no_variable
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class C
+          def m1: () -> void
+          def m2: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class C
+          @iv: String
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class C
+          @iv: String
+          def m1: () -> void
+          def m2: () -> void
+        end
+      EXPECTED
+    end
+
+    def test_inserts_variables_last_when_no_variable_and_method
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class C
+          include M
+        end
+      RBS
+      p.apply(<<~RBS)
+        class C
+          @iv: String
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class C
+          include M
+          @iv: String
+        end
+      EXPECTED
+    end
   end
 end
