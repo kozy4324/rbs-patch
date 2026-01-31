@@ -28,7 +28,7 @@ module RBS
 
     def update: (t decl, location: untyped) -> t
 
-    def walk: (Array[t] decls, ?Array[String] name_stack) { (::RBS::AST::Declarations::t | ::RBS::AST::Members::t, String) -> void } -> void
+    def walk: (Array[t] decls, ?Array[String] name_stack) { (t, String) -> void } -> void
 
     def decl_map: () -> Hash[String, t]
 
