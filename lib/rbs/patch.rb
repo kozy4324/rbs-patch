@@ -79,14 +79,28 @@ module RBS
         # steep:ignore:start
         decl.update(location:)
         # steep:ignore:end
+      elsif decl.is_a?(AST::Declarations::Constant)
+        AST::Declarations::Constant.new(
+          name: decl.name, type: decl.type, location: location, comment: decl.comment, annotations: decl.annotations
+        )
+      elsif decl.is_a?(AST::Declarations::Global)
+        AST::Declarations::Global.new(
+          name: decl.name, type: decl.type, location: location, comment: decl.comment, annotations: decl.annotations
+        )
+      elsif decl.is_a?(AST::Declarations::TypeAlias)
+        AST::Declarations::TypeAlias.new(
+          name: decl.name, type_params: decl.type_params, type: decl.type, annotations: decl.annotations,
+          location: location, comment: decl.comment
+        )
+      elsif decl.is_a?(AST::Declarations::AliasDecl)
+        decl.class.new(
+          new_name: decl.new_name, old_name: decl.old_name, location: location, comment: decl.comment,
+          annotations: decl.annotations
+        )
       elsif decl.is_a?(AST::Members::Alias)
-        AST::Members::Alias.new(
-          new_name: decl.new_name,
-          old_name: decl.old_name,
-          kind: decl.kind,
-          annotations: decl.annotations,
-          location: location,
-          comment: decl.comment
+        decl.class.new(
+          new_name: decl.new_name, old_name: decl.old_name, kind: decl.kind, annotations: decl.annotations,
+          location: location, comment: decl.comment
         )
       else
         decl

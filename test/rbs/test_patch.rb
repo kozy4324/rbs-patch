@@ -550,5 +550,63 @@ module RBS
         end
       EXPECTED
     end
+
+    def test_inserts_all_kinds_of_decls
+      p = RBS::Patch.new
+      # type t = Class | Module | Interface | Constant | Global | TypeAlias | ClassAlias | ModuleAlias
+      p.apply(<<~RBS)
+        class C1 end
+        module M1 end
+        interface _I1 end
+        CONSTANT1: String
+        $GLOBAL1: String
+        type t1 = C1
+        class CA1 = C1
+        module MA1 = M1
+      RBS
+      p.apply(<<~RBS)
+        %a{patch:append_after(C1)}
+        class C2 end
+        %a{patch:append_after(M1)}
+        module M2 end
+        %a{patch:append_after(_I1)}
+        interface _I2 end
+        %a{patch:append_after(CONSTANT1)}
+        CONSTANT2: String
+        %a{patch:append_after($GLOBAL1)}
+        $GLOBAL2: String
+        %a{patch:append_after(t1)}
+        type t2 = C2
+        %a{patch:append_after(CA1)}
+        class CA2 = C2
+        %a{patch:append_after(MA1)}
+        module MA2 = M2
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class C1
+        end
+        class C2
+        end
+        module M1
+        end
+        module M2
+        end
+        interface _I1
+        end
+        interface _I2
+        end
+        CONSTANT1: String
+        CONSTANT2: String
+        $GLOBAL1: String
+        $GLOBAL2: String
+        type t1 = C1
+        type t2 = C2
+        class CA1 = C1
+        class CA2 = C2
+        module MA1 = M1
+        module MA2 = M2
+      EXPECTED
+    end
   end
 end
