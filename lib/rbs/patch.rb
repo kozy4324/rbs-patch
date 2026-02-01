@@ -6,15 +6,21 @@ require_relative "patch/version"
 
 module RBS
   class Patch # rubocop:disable Style/Documentation
+    # @rbs! type t = ::RBS::AST::Declarations::t | ::RBS::AST::Members::t
+
     ANNOTATION_OVERRIDE       = "patch:override"
     ANNOTATION_DELETE         = "patch:delete"
     ANNOTATION_APPEND_AFTER   = /\Apatch:append_after\((.*)\)\Z/
     ANNOTATION_PREPEND_BEFORE = /\Apatch:prepend_before\((.*)\)\Z/
 
+    # @rbs @decls: Array[::RBS::AST::Declarations::t]
+
+    #: -> void
     def initialize
       @decls = []
     end
 
+    #: -> String
     def to_s
       io = ::StringIO.new
       ::RBS::Writer.new(out: io).write(@decls)
@@ -22,6 +28,7 @@ module RBS
       io.read || ""
     end
 
+    #: (?untyped? String, ?path: Pathname?) -> void
     def apply(source = nil, path: nil)
       unless path.nil?
         files = Set[]
@@ -55,6 +62,7 @@ module RBS
 
     private
 
+    #: (t decl) -> String
     def extract_name(decl)
       if decl.is_a?(::RBS::AST::Declarations::AliasDecl) # rubocop:disable Style/CaseLikeIf
         decl.new_name.to_s
@@ -70,10 +78,12 @@ module RBS
       end
     end
 
+    #: (t decl) -> (Array[AST::Declarations::Class::member] | Array[AST::Declarations::Module::member] | nil)
     def extract_members(decl)
       decl.members if decl.is_a?(::RBS::AST::Declarations::NestedDeclarationHelper)
     end
 
+    #: (t decl, location: untyped) -> t
     def update(decl, location:)
       if decl.respond_to?(:update)
         # steep:ignore:start
@@ -111,6 +121,7 @@ module RBS
       end
     end
 
+    #: (Array[t] decls, ?Array[String] name_stack) { (t, String) -> void } -> void
     def walk(decls, name_stack = [], &block)
       decls.each do |decl|
         name_stack << extract_name(decl)
@@ -125,6 +136,7 @@ module RBS
       end
     end
 
+    #: () -> Hash[String, t]
     def decl_map
       # @type var map: Hash[String, ::RBS::Patch::t]
       map = {}
@@ -132,6 +144,7 @@ module RBS
       map
     end
 
+    #: (t decl, to: String, ?after: String?, ?before: String?) -> void
     def add(decl, to:, after: nil, before: nil)
       map = decl_map
       return if map.key?(to)
@@ -181,6 +194,7 @@ module RBS
       end
     end
 
+    #: (String name, with: t) -> void
     def override(name, with:)
       map = decl_map
       return unless map.key?(name)
@@ -202,6 +216,7 @@ module RBS
       with.annotations.delete_if { |a| process_annotations([a]) } # steep:ignore
     end
 
+    #: (String name) -> void
     def delete(name)
       map = decl_map
       return unless map.key?(name)
@@ -217,6 +232,11 @@ module RBS
       end
     end
 
+    # @rbs (Array[AST::Annotation] annotations) -> ([:override, nil]
+    #                                             | [:delte, nil]
+    #                                             | [:append_after, String]
+    #                                             | [:prepend_before, String]
+    #                                             | nil)
     def process_annotations(annotations) # steep:ignore
       if annotations.any? { |a| a.string == ANNOTATION_OVERRIDE }
         [:override, nil]

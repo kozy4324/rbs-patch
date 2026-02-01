@@ -1,0 +1,59 @@
+# Generated from lib/rbs/patch.rb with RBS::Inline
+
+module RBS
+  class Patch
+    type t = ::RBS::AST::Declarations::t | ::RBS::AST::Members::t
+
+    ANNOTATION_OVERRIDE: ::String
+
+    ANNOTATION_DELETE: ::String
+
+    ANNOTATION_APPEND_AFTER: ::Regexp
+
+    ANNOTATION_PREPEND_BEFORE: ::Regexp
+
+    @decls: Array[::RBS::AST::Declarations::t]
+
+    # : -> void
+    def initialize: () -> void
+
+    # : -> String
+    def to_s: () -> String
+
+    # : (?untyped? String, ?path: Pathname?) -> void
+    def apply: (?untyped? String, ?path: Pathname?) -> void
+
+    private
+
+    # : (t decl) -> String
+    def extract_name: (t decl) -> String
+
+    # : (t decl) -> (Array[AST::Declarations::Class::member] | Array[AST::Declarations::Module::member] | nil)
+    def extract_members: (t decl) -> (Array[AST::Declarations::Class::member] | Array[AST::Declarations::Module::member] | nil)
+
+    # : (t decl, location: untyped) -> t
+    def update: (t decl, location: untyped) -> t
+
+    # : (Array[t] decls, ?Array[String] name_stack) { (t, String) -> void } -> void
+    def walk: (Array[t] decls, ?Array[String] name_stack) { (t, String) -> void } -> void
+
+    # : () -> Hash[String, t]
+    def decl_map: () -> Hash[String, t]
+
+    # : (t decl, to: String, ?after: String?, ?before: String?) -> void
+    def add: (t decl, to: String, ?after: String?, ?before: String?) -> void
+
+    # : (String name, with: t) -> void
+    def override: (String name, with: t) -> void
+
+    # : (String name) -> void
+    def delete: (String name) -> void
+
+    # @rbs (Array[AST::Annotation] annotations) -> ([:override, nil]
+    #                                             | [:delte, nil]
+    #                                             | [:append_after, String]
+    #                                             | [:prepend_before, String]
+    #                                             | nil)
+    def process_annotations: (Array[AST::Annotation] annotations) -> ([ :override, nil ] | [ :delte, nil ] | [ :append_after, String ] | [ :prepend_before, String ] | nil)
+  end
+end

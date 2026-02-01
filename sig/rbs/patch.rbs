@@ -1,43 +1,5 @@
 module RBS
   class Patch
     VERSION: String
-
-    @decls: ::Array[::RBS::AST::Declarations::t]
-
-    ANNOTATION_OVERRIDE: "patch:override"
-
-    ANNOTATION_DELETE: "patch:delete"
-
-    ANNOTATION_APPEND_AFTER: ::Regexp
-
-    ANNOTATION_PREPEND_BEFORE: ::Regexp
-
-    def initialize: () -> void
-
-    def to_s: () -> String
-
-    def apply: (?untyped? String, ?path: Pathname?) -> void
-
-    type t = ::RBS::AST::Declarations::t | ::RBS::AST::Members::t
-
-    private
-
-    def extract_name: (t decl) -> String
-
-    def extract_members: (t decl) -> (Array[::RBS::AST::Declarations::Class::member] | Array[::RBS::AST::Declarations::Module::member] | nil)
-
-    def update: (t decl, location: untyped) -> t
-
-    def walk: (Array[t] decls, ?Array[String] name_stack) { (t, String) -> void } -> void
-
-    def decl_map: () -> Hash[String, t]
-
-    def add: (t decl, to: String, ?after: String?, ?before: String?) -> void
-
-    def override: (String name, with: t) -> void
-
-    def delete: (String name) -> void
-
-    def process_annotations: (Array[::RBS::AST::Annotation] annotations) -> ([:override, nil] | [:delte, nil] | [:append_after, String] | [:prepend_before, String] | nil)
   end
 end
