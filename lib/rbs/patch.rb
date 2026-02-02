@@ -155,7 +155,7 @@ module RBS
       target = namespace.empty? ? @decls : extract_members(map[namespace])
 
       unless target
-        @decls << decl # steep:ignore
+        @decls << decl if decl.is_a?(AST::Declarations::Base)
         return
       end
 
