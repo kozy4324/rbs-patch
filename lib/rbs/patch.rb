@@ -85,11 +85,7 @@ module RBS
 
     #: (t decl, location: untyped) -> t
     def update(decl, location:)
-      if decl.respond_to?(:update)
-        # steep:ignore:start
-        decl.update(location:)
-        # steep:ignore:end
-      elsif decl.is_a?(AST::Declarations::Constant)
+      if decl.is_a?(AST::Declarations::Constant) # rubocop:disable Style/CaseLikeIf
         AST::Declarations::Constant.new(
           name: decl.name, type: decl.type, location: location, comment: decl.comment, annotations: decl.annotations
         )
@@ -116,8 +112,10 @@ module RBS
           new_name: decl.new_name, old_name: decl.old_name, kind: decl.kind, annotations: decl.annotations,
           location: location, comment: decl.comment
         )
-      else
+      elsif decl.is_a?(AST::Members::Var) || decl.is_a?(AST::Members::LocationOnly)
         decl
+      else
+        decl.update(location:)
       end
     end
 
