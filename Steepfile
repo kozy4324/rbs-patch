@@ -5,4 +5,5 @@ target :lib do
 
   check "lib"
   library "rbs"
+  library "prism"
 end
