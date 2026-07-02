@@ -86,6 +86,120 @@ module RBS
       EXPECTED
     end
 
+    def test_override_keeps_original_comment_when_override_has_no_comment
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          # original comment
+          def a: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          %a{patch:override}
+          def a: (untyped) -> untyped
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          # original comment
+          def a: (untyped) -> untyped
+        end
+      EXPECTED
+    end
+
+    def test_override_replaces_comment_when_override_has_comment
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          # original comment
+          def a: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          # new comment
+          %a{patch:override}
+          def a: (untyped) -> untyped
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          # new comment
+          def a: (untyped) -> untyped
+        end
+      EXPECTED
+    end
+
+    def test_override_adds_comment_when_original_has_no_comment
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          def a: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          # new comment
+          %a{patch:override}
+          def a: (untyped) -> untyped
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          # new comment
+          def a: (untyped) -> untyped
+        end
+      EXPECTED
+    end
+
+    def test_override_keeps_no_comment_when_neither_has_comment
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        class A
+          def a: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        class A
+          %a{patch:override}
+          def a: (untyped) -> untyped
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        class A
+          def a: (untyped) -> untyped
+        end
+      EXPECTED
+    end
+
+    def test_override_class_keeps_original_comment_when_override_has_no_comment
+      p = RBS::Patch.new
+      p.apply(<<~RBS)
+        # original comment
+        class A
+          def a: () -> void
+        end
+      RBS
+      p.apply(<<~RBS)
+        %a{patch:override}
+        class A
+          def a: (untyped) -> untyped
+        end
+      RBS
+
+      assert_equal(<<~EXPECTED, p.to_s)
+        # original comment
+        class A
+          def a: (untyped) -> untyped
+        end
+      EXPECTED
+    end
+
     def test_deletes_method
       p = RBS::Patch.new
       p.apply(<<~RBS)

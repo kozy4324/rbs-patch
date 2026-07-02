@@ -31,8 +31,8 @@ module RBS
     # : (t decl) -> (Array[AST::Declarations::Class::member] | Array[AST::Declarations::Module::member] | nil)
     def extract_members: (t decl) -> (Array[AST::Declarations::Class::member] | Array[AST::Declarations::Module::member] | nil)
 
-    # : (t decl, location: untyped) -> t
-    def update: (t decl, location: untyped) -> t
+    # : (t decl, ?location: untyped, ?comment: untyped) -> t
+    def update: (t decl, ?location: untyped, ?comment: untyped) -> t
 
     # : (Array[t] decls, ?Array[String] name_stack) { (t, String) -> void } -> void
     def walk: (Array[t] decls, ?Array[String] name_stack) { (t, String) -> void } -> void

@@ -83,39 +83,42 @@ module RBS
       decl.members if decl.is_a?(::RBS::AST::Declarations::NestedDeclarationHelper)
     end
 
-    #: (t decl, location: untyped) -> t
-    def update(decl, location:)
+    #: (t decl, ?location: untyped, ?comment: untyped) -> t
+    def update(decl, location: decl.location, comment: nil)
       if decl.is_a?(AST::Declarations::Constant) # rubocop:disable Style/CaseLikeIf
         AST::Declarations::Constant.new(
-          name: decl.name, type: decl.type, location: location, comment: decl.comment, annotations: decl.annotations
+          name: decl.name, type: decl.type, location: location, comment: comment || decl.comment,
+          annotations: decl.annotations
         )
       elsif decl.is_a?(AST::Declarations::Global)
         AST::Declarations::Global.new(
-          name: decl.name, type: decl.type, location: location, comment: decl.comment, annotations: decl.annotations
+          name: decl.name, type: decl.type, location: location, comment: comment || decl.comment,
+          annotations: decl.annotations
         )
       elsif decl.is_a?(AST::Declarations::TypeAlias)
         AST::Declarations::TypeAlias.new(
           name: decl.name, type_params: decl.type_params, type: decl.type, annotations: decl.annotations,
-          location: location, comment: decl.comment
+          location: location, comment: comment || decl.comment
         )
       elsif decl.is_a?(AST::Declarations::AliasDecl)
         decl.class.new(
-          new_name: decl.new_name, old_name: decl.old_name, location: location, comment: decl.comment,
+          new_name: decl.new_name, old_name: decl.old_name, location: location, comment: comment || decl.comment,
           annotations: decl.annotations
         )
       elsif decl.is_a?(AST::Members::Mixin)
         decl.class.new(
-          name: decl.name, args: decl.args, annotations: decl.annotations, location: location, comment: decl.comment
+          name: decl.name, args: decl.args, annotations: decl.annotations, location: location,
+          comment: comment || decl.comment
         )
       elsif decl.is_a?(AST::Members::Alias)
         decl.class.new(
           new_name: decl.new_name, old_name: decl.old_name, kind: decl.kind, annotations: decl.annotations,
-          location: location, comment: decl.comment
+          location: location, comment: comment || decl.comment
         )
       elsif decl.is_a?(AST::Members::Var) || decl.is_a?(AST::Members::LocationOnly)
         decl
       else
-        decl.update(location:)
+        decl.update(location: location, comment: comment || decl.comment)
       end
     end
 
@@ -196,6 +199,11 @@ module RBS
     def override(name, with:)
       map = decl_map
       return unless map.key?(name)
+
+      old = map[name]
+      # No way to explicitly clear a comment via override: an override without a
+      # comment always keeps the overridden one. Revisit if that's ever needed.
+      with = update(with, comment: old.comment) if with.comment.nil? && old.comment # steep:ignore
 
       sep = with.is_a?(::RBS::AST::Members::Base) ? "#" : "::"
       namespace, _, name = name.rpartition(sep)

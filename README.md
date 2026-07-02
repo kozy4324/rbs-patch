@@ -143,6 +143,45 @@ class Guest
 end  # Inserts Guest class before User class
 ```
 
+### Comment Handling in `override`
+
+When `override` replaces a method, class, or module, the comment on the two sides is merged rather than always taken from one side:
+
+- If the overriding declaration has a comment, it replaces the original comment.
+- If the overriding declaration has no comment, the original comment (if any) is kept.
+
+```ruby
+p.apply(<<~RBS)
+  class User
+    # The user's display name.
+    def name: () -> String
+  end
+RBS
+
+p.apply(<<~RBS)
+  class User
+    %a{patch:override}
+    def name: () -> String?  # No comment here, so the original one is kept
+  end
+RBS
+
+# Result:
+# class User
+#   # The user's display name.
+#   def name: () -> String?
+# end
+```
+
+There is currently no way to explicitly clear an existing comment through `override` — omitting the comment always keeps the original one.
+
+> **Note:** In RBS syntax, a comment must be written *before* the annotation, not after it:
+>
+> ```ruby
+> # This comment is attached to the method
+> %a{patch:override}
+> def name: () -> String?
+> ```
+
 ### Working with Nested Modules
 
 Operations work correctly within nested module structures:
